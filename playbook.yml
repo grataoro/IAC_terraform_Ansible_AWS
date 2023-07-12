@@ -1,0 +1,33 @@
+- hosts: terraform-ansible
+  tasks:      # cria uma task
+    - name: instalando python3 e venv
+      apt:
+        update_cache: yes
+        pkg:
+          - python3
+          - virtualenv
+      become: true  # Executa a task como admin
+
+    - name: instalando dependencias
+      pip:
+        virtualenv: /home/ubuntu/rep/venv # cria o ambiente virtual
+        name:   # instala as biliotecas 
+          - django
+          - djangorestframework
+
+    - name: iniciando projeto Django
+      shell: '. /home/ubuntu/rep/venv/bin/activate; django-admin startproject setup /home/ubuntu/rep'  # ativa o ambiente virtual do python
+      ignore_errors: true   
+
+
+    - name: alterando hosts
+      lineinfile:   # altera uma linha em um arquivo
+        path: /home/ubuntu/rep/setup/settings.py
+        regexp: 'ALLOWED_HOSTS'  # encontra as linhas com essa expressão
+        line: 'ALLOWED_HOSTS = ["*"]' # subistitui toda a linha por essa expressão
+        backrefs: yes  # não altera o arquivo caso a expressão não seja encontrada 
+
+    - name: teste   
+      shell: 'nohup . /home/ubuntu/rep/venv/bin/activate ; python3 manage.py runserver 0.0.0.0:8080 &'   
+
+       
